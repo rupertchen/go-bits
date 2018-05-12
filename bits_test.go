@@ -14,11 +14,11 @@ func TestNewBitmap(t *testing.T) {
 
 	for _, test:= range(tests) {
 		var b = NewBitmap(test.capacity)
-		if (b.Capacity() != test.capacity) {
+		if b.Capacity() != test.capacity {
 			t.Errorf("Expected %d capacity, got %d", test.capacity, b.Capacity())
 		}
 		if len(b.store) != test.storeSize {
-			t.Errorf("Expected %d store size, got %d", test.storeSize, len(b.store))
+			t.Errorf("Expected %d store size when capacit is %d, got %d", test.storeSize, test.capacity, len(b.store))
 		}
 	}
 }

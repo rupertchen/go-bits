@@ -12,7 +12,7 @@ type Bitmap struct {
 const bitsPerBlock = 64
 
 func NewBitmap(capacity int) *Bitmap {
-	var arraySize = int(math.Ceil(float64(capacity / bitsPerBlock)))
+	var arraySize = int(math.Ceil(float64(capacity) / bitsPerBlock))
 	return &Bitmap{
 		cap: capacity,
 		store: make([]int64, arraySize),
