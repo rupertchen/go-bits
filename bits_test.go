@@ -28,6 +28,7 @@ func TestBitmap_Get(t *testing.T) {
 	var blockEquals = func(expected, actual Block) {
 		if expected != actual {
 			t.Errorf("Expected 0x%016X, got 0x%016X", expected, actual)
+			t.FailNow()
 		}
 	}
 
@@ -38,11 +39,15 @@ func TestBitmap_Get(t *testing.T) {
 	b.store[0] = 0x8000000000000001
 	blockEquals(0, b.Get(0, 0))
 	blockEquals(0x1, b.Get(0, 1))
-	blockEquals(0x1, b.Get(0, 2))
+	blockEquals(0x2, b.Get(0, 2))
 	blockEquals(0x1, b.Get(63, 1))
-	blockEquals(0x2, b.Get(62, 2))
+	blockEquals(0x1, b.Get(62, 2))
 
 	var b2 = NewBitmap(128)
 	b2.store[0] = 0xffffffffaaaaaaaa
 	b2.store[1] = 0x5555555500000000
+
+	blockEquals(0xff, b2.Get(4, 8))
+	blockEquals(0xffaa, b2.Get(24, 16))
+	blockEquals(0x2a, b2.Get(58, 6))
 }
