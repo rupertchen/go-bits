@@ -60,9 +60,29 @@ func TestBitmap_Get(t *testing.T) {
 	blockEquals(t, 0xa5, bmp2.Get(60, 8))
 }
 
+func TestBitmap_GetPanicsOnOutOfRange(t *testing.T) {
+	var bmp = NewBitmap([]byte{0})
+	assertPanic(t, func() { bmp.Get(42, 1) }, "index out of range")
+	assertPanic(t, func() { bmp.Get(0, 42) }, "length extends beyond range")
+}
+
 func blockEquals(t *testing.T, expected, actual Block) {
 	if expected != actual {
 		t.Errorf("Expected 0x%016x, got 0x%016x", expected, actual)
 		t.FailNow()
 	}
+}
+
+func assertPanic(t *testing.T, f func(), errMsg string) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic")
+			t.FailNow()
+		} else if m := r.(error).Error(); m != errMsg {
+			t.Errorf(`Expected "%s", got "%s"`, errMsg, m)
+			t.FailNow()
+		}
+	}()
+
+	f()
 }

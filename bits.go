@@ -1,6 +1,8 @@
 // Package bits is a set of utilities for working with sequences of bits.
 package bits
 
+import "errors"
+
 // Block contains a sequence of 0–64 bits. If fewer than 64 bits are needed,
 // padding is applied. It is up to the caller to know how many bits are used.
 type Block uint64
@@ -58,7 +60,13 @@ func sizeRequired(n, g int) int {
 // Get returns a Block of bits representing the requested range of bits. The
 // bits are right-aligned.
 func (b *Bitmap) Get(index, length uint) Block {
-	// TODO: Validate index and length
+	if index >= uint(b.size) {
+		panic(errors.New("index out of range"))
+	}
+
+	if index + length >= uint(b.size) {
+		panic(errors.New("length extends beyond range"))
+	}
 
 	if length == 0 {
 		return 0
