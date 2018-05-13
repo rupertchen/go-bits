@@ -19,6 +19,10 @@ func TestSizeRequired(t *testing.T) {
 }
 
 func TestNewBitmap(t *testing.T) {
+	// Load < 64 bits, all zeros
+	var bmp0 = NewBitmap(make([]byte, 1))
+	blockEquals(t, 0x0, bmp0.Get(0, 8))
+
 	// Load < 64 bits
 	var bmp1 = NewBitmap([]byte{0xec, 0xbc, 0x65, 0xde, 0x67})
 	blockEquals(t, 0xecbc65de67, bmp1.Get(0, 40))
@@ -61,9 +65,11 @@ func TestBitmap_Get(t *testing.T) {
 }
 
 func TestBitmap_GetPanicsOnOutOfRange(t *testing.T) {
-	var bmp = NewBitmap([]byte{0})
-	assertPanic(t, func() { bmp.Get(42, 1) }, "index out of range")
-	assertPanic(t, func() { bmp.Get(0, 42) }, "length extends beyond range")
+	var bmp = NewBitmapFromBlocks([]Block{0, 0})
+	assertPanic(t, func() { bmp.Get(128, 0) }, "index out of range")
+	assertPanic(t, func() { bmp.Get(128, 1) }, "index out of range")
+	assertPanic(t, func() { bmp.Get(0, 65) }, "length out of range, [0-64]")
+	assertPanic(t, func() { bmp.Get(120, 64) }, "length extends beyond range")
 }
 
 func blockEquals(t *testing.T, expected, actual Block) {

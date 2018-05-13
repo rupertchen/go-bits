@@ -25,6 +25,7 @@ func NewBitmap(bytes []byte) *Bitmap {
 	var s = make([]Block, 0, storeSize)
 
 	var buf Block
+	var hasPartialBuf bool
 	var lastM = bytesPerBlock - 1
 	for i, b := range bytes {
 		var m = i % bytesPerBlock
@@ -32,9 +33,12 @@ func NewBitmap(bytes []byte) *Bitmap {
 		if lastM == m {
 			s = append(s, buf)
 			buf = 0
+			hasPartialBuf = false
+		} else {
+			hasPartialBuf = true
 		}
 	}
-	if buf != 0 {
+	if hasPartialBuf {
 		s = append(s, buf)
 	}
 	return &Bitmap{size: numBytes * bitsPerByte, store: s}
@@ -70,6 +74,10 @@ func (b *Bitmap) Get(index, length uint) Block {
 	// behavior will simplify a caller's logic in some edge case.
 	if length == 0 {
 		return 0
+	}
+
+	if length > bitsPerBlock {
+		panic(errors.New("length out of range, [0-64]"))
 	}
 
 	if index+length-1 >= uint(b.size) {

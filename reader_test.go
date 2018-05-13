@@ -52,6 +52,46 @@ func TestReader_ReadByte(t *testing.T) {
 	}
 }
 
+func TestReader_Size(t *testing.T) {
+	var tests = []struct{ expected, numBytes int }{
+		{8, 1},
+		{16, 2},
+		{256, 32},
+	}
+
+	for _, test := range tests {
+		var r = NewReader(NewBitmap(make([]byte, test.numBytes)))
+		intEquals(t, test.expected, r.Size())
+	}
+}
+
+func TestReader_NumUnread(t *testing.T) {
+	var r = NewReader(NewBitmap(make([]byte, 1)))
+
+	intEquals(t, 8, r.NumUnread())
+	r.ReadBits(3)
+	intEquals(t, 5, r.NumUnread())
+	r.ReadBits(5)
+	intEquals(t, 0, r.NumUnread())
+}
+
+func TestReader_HasUnread(t *testing.T) {
+	var r = NewReader(NewBitmap(make([]byte, 1)))
+
+	boolEquals(t, true, r.HasUnread())
+	r.ReadBits(6)
+	boolEquals(t, true, r.HasUnread())
+	r.ReadBits(2)
+	boolEquals(t, false, r.HasUnread())
+}
+
+func intEquals(t *testing.T, expected, actual int) {
+	if expected != actual {
+		t.Errorf("Expected %d, got %d", expected, actual)
+		t.FailNow()
+	}
+}
+
 func boolEquals(t *testing.T, expected, actual bool) {
 	if expected != actual {
 		t.Errorf("Expected %t, got %t", expected, actual)
