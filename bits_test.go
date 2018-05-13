@@ -3,11 +3,12 @@ package bits
 import "testing"
 
 func TestSizeRequired(t *testing.T) {
-	var tests = []struct{s, n, g int}{
+	var tests = []struct{ s, n, g int }{
 		{0, 0, 2},
 		{1, 1, 2},
 		{1, 2, 2},
 		{2, 3, 2},
+		{57, 396, 7},
 	}
 	for _, test := range tests {
 		var actual = sizeRequired(test.n, test.g)
@@ -18,6 +19,9 @@ func TestSizeRequired(t *testing.T) {
 }
 
 func TestNewBitmap(t *testing.T) {
+	// TODO: This test is no longer interesting and also suffers from getting
+	// too deep into the internals. It would be better to verify the results
+	// through black box testing.
 	var tests = []struct{ size, storeSize int }{
 		{0, 0},
 		{1, 1},
@@ -54,33 +58,34 @@ func TestNewBitmapFromBytes(t *testing.T) {
 }
 
 func TestBitmap_Get(t *testing.T) {
-	var b = NewBitmap(64)
-	blockEquals(t, 0, b.Get(0, 0))
-	blockEquals(t, 0, b.Get(0, 1))
+	var bmp1 = NewBitmap(64)
+	blockEquals(t, 0, bmp1.Get(0, 0))
+	blockEquals(t, 0, bmp1.Get(0, 1))
 
-	b.store[0] = 0x8000000000000001
-	blockEquals(t, 0, b.Get(0, 0))
-	blockEquals(t, 0x1, b.Get(0, 1))
-	blockEquals(t, 0x2, b.Get(0, 2))
-	blockEquals(t, 0x1, b.Get(63, 1))
-	blockEquals(t, 0x1, b.Get(62, 2))
+	var bmp2 = NewBitmapFromBlocks([]Block{0x8000000000000001})
+	blockEquals(t, 0, bmp2.Get(0, 0))
+	blockEquals(t, 0x1, bmp2.Get(0, 1))
+	blockEquals(t, 0x2, bmp2.Get(0, 2))
+	blockEquals(t, 0x1, bmp2.Get(63, 1))
+	blockEquals(t, 0x1, bmp2.Get(62, 2))
 
-	var b2 = NewBitmap(128)
-	b2.store[0] = 0xffffffffaaaaaaaa
-	b2.store[1] = 0x55555555ffffffff
+	var bmp3 = NewBitmapFromBlocks([]Block{
+		0xffffffffaaaaaaaa,
+		0x55555555ffffffff,
+	})
 
 	// Access within first internal block
-	blockEquals(t, 0xff, b2.Get(4, 8))
-	blockEquals(t, 0xffaa, b2.Get(24, 16))
-	blockEquals(t, 0x2a, b2.Get(58, 6))
+	blockEquals(t, 0xff, bmp3.Get(4, 8))
+	blockEquals(t, 0xffaa, bmp3.Get(24, 16))
+	blockEquals(t, 0x2a, bmp3.Get(58, 6))
 
 	// Access within second internal block
-	blockEquals(t, 0x55, b2.Get(64, 8))
-	blockEquals(t, 0x55ff, b2.Get(88, 16))
-	blockEquals(t, 0x3f, b2.Get(122, 6))
+	blockEquals(t, 0x55, bmp3.Get(64, 8))
+	blockEquals(t, 0x55ff, bmp3.Get(88, 16))
+	blockEquals(t, 0x3f, bmp3.Get(122, 6))
 
 	// Access spanning internal blocks
-	blockEquals(t, 0xa5, b2.Get(60, 8))
+	blockEquals(t, 0xa5, bmp3.Get(60, 8))
 }
 
 func blockEquals(t *testing.T, expected, actual Block) {

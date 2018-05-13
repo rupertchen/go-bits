@@ -47,6 +47,13 @@ func NewBitmapFromBytes(bytes []byte) *Bitmap {
 	return &Bitmap{size: numBytes, store: s}
 }
 
+// NewBitmapFromBlocks returns a new Bitmap from a slice of Blocks. This
+// a convenient way to explicitly create Bitmaps in code, such as when writing
+// tests.
+func NewBitmapFromBlocks(blocks []Block) *Bitmap {
+	return &Bitmap{size: len(blocks) * bitsPerBlock, store: blocks}
+}
+
 // sizeRequired returns the number of groups required to fit n items into
 // groups of at most size g. This is equivalent to ceil(n / g) but avoids using
 // package math, which depends on package unsafe.
