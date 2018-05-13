@@ -14,16 +14,20 @@ const bitsPerBlock = 64
 func NewBitmap(capacity int) *Bitmap {
 	var arraySize = int(math.Ceil(float64(capacity) / bitsPerBlock))
 	return &Bitmap{
-		cap: capacity,
+		cap:   capacity,
 		store: make([]int64, arraySize),
 	}
 }
 
 // Get returns a Block of bits.
-func (b *Bitmap) Get(index, length int) Block {
-	// TODO
-	var block Block
-	return block
+func (b *Bitmap) Get(index, length uint) Block {
+	if length == 0 {
+		return 0
+	}
+
+	// TODO: Assume <= 64 bits
+	var mask = int64(1) << (length - 1)
+	return Block(b.store[0] & mask)
 }
 
 func (b *Bitmap) Capacity() int {

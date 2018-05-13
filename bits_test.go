@@ -22,3 +22,20 @@ func TestNewBitmap(t *testing.T) {
 		}
 	}
 }
+
+func TestBitmap_Get(t *testing.T) {
+	// TODO: Set the underlying store directly as we don't have helpers yet.
+	var b = NewBitmap(1)
+	blockEquals(t, 0x0000, b.Get(0, 0))
+	blockEquals(t, 0x0000, b.Get(0, 1))
+
+	b.store[0] = 0x0001
+	blockEquals(t, 0x0000, b.Get(0, 0))
+	blockEquals(t, 0x0001, b.Get(0, 1))
+}
+
+func blockEquals(t *testing.T, expected, actual Block) {
+	if expected != actual {
+		t.Errorf("Expected 0x%04X, got 0x%04X", expected, actual)
+	}
+}
