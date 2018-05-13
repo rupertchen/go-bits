@@ -15,16 +15,6 @@ const bitsPerBlock = bitsPerByte * bytesPerBlock
 const bytesPerBlock = 8
 const bitsPerByte = 8
 
-// NewBitmap returns a new Bitmap of the specified size with all bits set to
-// zero.
-func NewBitmap(s int) *Bitmap {
-	var arraySize = sizeRequired(s, bitsPerBlock)
-	return &Bitmap{
-		size:  s,
-		store: make([]Block, arraySize),
-	}
-}
-
 // NewBitmapFromBytes returns a new Bitmap from a slice of bytes.
 func NewBitmapFromBytes(bytes []byte) *Bitmap {
 	var numBytes = len(bytes)
