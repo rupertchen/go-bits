@@ -29,8 +29,9 @@ func (b *Bitmap) Get(index, length uint) Block {
 		return 0
 	}
 
-	// TODO: assume capacity is 64 bits
-	var buf = b.store[0] >> (bitsPerBlock - index - length)
+	// TODO: assume request does not span internal blocks
+	var storeIndex = index / bitsPerBlock
+	var buf = b.store[storeIndex] >> (bitsPerBlock - (index % bitsPerBlock) - length)
 	var mask Block = 0xFFFFFFFFFFFFFFFF >> (bitsPerBlock - length)
 	//fmt.Printf("Index, Length: %d, %d\n", index, length)
 	//fmt.Printf("  s:\t0x%016X\n", b.store[0])

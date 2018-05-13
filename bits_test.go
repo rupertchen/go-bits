@@ -45,9 +45,15 @@ func TestBitmap_Get(t *testing.T) {
 
 	var b2 = NewBitmap(128)
 	b2.store[0] = 0xffffffffaaaaaaaa
-	b2.store[1] = 0x5555555500000000
+	b2.store[1] = 0x55555555ffffffff
 
+	// Access within first internal block
 	blockEquals(0xff, b2.Get(4, 8))
 	blockEquals(0xffaa, b2.Get(24, 16))
 	blockEquals(0x2a, b2.Get(58, 6))
+
+	// Access within second internal block
+	blockEquals(0x55, b2.Get(64, 8))
+	blockEquals(0x55ff, b2.Get(88, 16))
+	blockEquals(0x3f, b2.Get(122, 6))
 }
