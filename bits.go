@@ -11,12 +11,12 @@ type Bitmap struct {
 	store []Block
 }
 
-const bitsPerBlock = bitsPerByte * bytesPerBlock
-const bytesPerBlock = 8
 const bitsPerByte = 8
+const bytesPerBlock = 8
+const bitsPerBlock = bitsPerByte * bytesPerBlock
 
-// NewBitmapFromBytes returns a new Bitmap from a slice of bytes.
-func NewBitmapFromBytes(bytes []byte) *Bitmap {
+// NewBitmap returns a new Bitmap from a slice of bytes.
+func NewBitmap(bytes []byte) *Bitmap {
 	var numBytes = len(bytes)
 	var storeSize = sizeRequired(numBytes, bytesPerBlock)
 	var s = make([]Block, 0, storeSize)
@@ -34,7 +34,7 @@ func NewBitmapFromBytes(bytes []byte) *Bitmap {
 	if buf != 0 {
 		s = append(s, buf)
 	}
-	return &Bitmap{size: numBytes, store: s}
+	return &Bitmap{size: numBytes*bitsPerByte, store: s}
 }
 
 // NewBitmapFromBlocks returns a new Bitmap from a slice of Blocks. This
