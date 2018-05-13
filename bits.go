@@ -4,7 +4,8 @@ package bits
 import "errors"
 
 // Block contains a sequence of 0–64 bits. If fewer than 64 bits are needed,
-// padding is applied. It is up to the caller to know how many bits are used.
+// the sequence is right-aligned and padded with zeros on the left. It is up
+// to the caller to interpret how many bits are used.
 type Block uint64
 
 // Bitmap represents a fixed-length, sequence of bits.
@@ -36,7 +37,7 @@ func NewBitmap(bytes []byte) *Bitmap {
 	if buf != 0 {
 		s = append(s, buf)
 	}
-	return &Bitmap{size: numBytes*bitsPerByte, store: s}
+	return &Bitmap{size: numBytes * bitsPerByte, store: s}
 }
 
 // NewBitmapFromBlocks returns a new Bitmap from a slice of Blocks. This
@@ -58,18 +59,21 @@ func sizeRequired(n, g int) int {
 }
 
 // Get returns a Block of bits representing the requested range of bits. The
-// bits are right-aligned.
+// returned bits are right-aligned.
 func (b *Bitmap) Get(index, length uint) Block {
 	if index >= uint(b.size) {
 		panic(errors.New("index out of range"))
 	}
 
-	if index + length >= uint(b.size) {
-		panic(errors.New("length extends beyond range"))
-	}
-
+	// I can't think of a reasonable use case for explicitly reading zero bits,
+	// but returning an empty Block should be the result. Perhaps there is
+	// behavior will simplify a caller's logic in some edge case.
 	if length == 0 {
 		return 0
+	}
+
+	if index+length-1 >= uint(b.size) {
+		panic(errors.New("length extends beyond range"))
 	}
 
 	// This is the index of the internal block where the range begins.
@@ -92,6 +96,7 @@ func (b *Bitmap) Get(index, length uint) Block {
 	return Block(buf & mask)
 }
 
+// Size returns the number of bits in the Bitmap.
 func (b *Bitmap) Size() int {
 	return b.size
 }

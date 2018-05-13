@@ -2,8 +2,8 @@ package bits
 
 import "testing"
 
-func TestScanner_ReadBits(t *testing.T) {
-	var s = NewScanner(NewBitmapFromBlocks([]Block{0xaaaaaaaaaaaaaaaa, 0x5555555555555555}))
+func TestReader_ReadBits(t *testing.T) {
+	var r = NewReader(NewBitmapFromBlocks([]Block{0xaaaaaaaaaaaaaaaa, 0x5555555555555555}))
 
 	var tests = []struct {
 		expected Block
@@ -27,28 +27,28 @@ func TestScanner_ReadBits(t *testing.T) {
 		{0xa5, 8},
 	}
 	for _, test := range tests {
-		blockEquals(t, test.expected, s.ReadBits(test.length))
+		blockEquals(t, test.expected, r.ReadBits(test.length))
 	}
 }
 
-func TestScanner_ReadBool(t *testing.T) {
-	var s = NewScanner(NewBitmap([]byte{0xa5}))
+func TestReader_ReadBool(t *testing.T) {
+	var r = NewReader(NewBitmap([]byte{0xa5}))
 
 	var expecteds = []bool{
 		true, false, true, false,
 		false, true, false, true,
 	}
 	for _, expected := range expecteds {
-		boolEquals(t, expected, s.ReadBool())
+		boolEquals(t, expected, r.ReadBool())
 	}
 }
 
-func TestScanner_ReadByte(t *testing.T) {
-	var s = NewScanner(NewBitmapFromBlocks([]Block{0xa5fe735d00000000}))
+func TestReader_ReadByte(t *testing.T) {
+	var r = NewReader(NewBitmapFromBlocks([]Block{0xa5fe735d00000000}))
 
 	var expecteds = []byte{0xa5, 0xfe, 0x73, 0x5d}
 	for _, expected := range expecteds {
-		byteEquals(t, expected, s.ReadByte())
+		byteEquals(t, expected, r.ReadByte())
 	}
 }
 
