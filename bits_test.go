@@ -56,7 +56,7 @@ func TestBitmap_Get(t *testing.T) {
 
 func blockEquals(t *testing.T, expected, actual Block) {
 	if expected != actual {
-		t.Errorf("Expected 0x%016X, got 0x%016X", expected, actual)
+		t.Errorf("Expected 0x%016x, got 0x%016x", expected, actual)
 		t.FailNow()
 	}
 }

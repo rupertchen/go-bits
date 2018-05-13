@@ -15,7 +15,7 @@ func TestScanner_ReadBits(t *testing.T) {
 	byteEquals(t, 0xaa, s.ReadByte())
 	boolEquals(t, true, s.ReadBool())
 	byteEquals(t, 0x55, s.ReadByte())
-	blockEquals(t, 0x0000002AAAAAAAAA, s.ReadBits(39))
+	blockEquals(t, 0x0000002aaaaaaaaa, s.ReadBits(39))
 	byteEquals(t, 0xa5, s.ReadByte())
 }
 
@@ -28,6 +28,6 @@ func boolEquals(t *testing.T, expected, actual bool) {
 
 func byteEquals(t *testing.T, expected, actual byte) {
 	if expected != actual {
-		t.Errorf("Expected 0x%02X, got 0x%02X", expected, actual)
+		t.Errorf("Expected 0x%02x, got 0x%02x", expected, actual)
 	}
 }
