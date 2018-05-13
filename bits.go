@@ -1,8 +1,6 @@
 // Package bits is a set of utilities for working with sequences of bits.
 package bits
 
-import "math"
-
 // Block contains a sequence of 0–64 bits. If fewer than 64 bits are needed,
 // padding is applied. It is up to the caller to know how many bits are used.
 type Block uint64
@@ -13,14 +11,14 @@ type Bitmap struct {
 	store []Block
 }
 
-const bitsPerBlock = bitsPerByte*bytesPerBlock
+const bitsPerBlock = bitsPerByte * bytesPerBlock
 const bytesPerBlock = 8
 const bitsPerByte = 8
 
 // NewBitmap returns a new Bitmap of the specified size with all bits set to
 // zero.
 func NewBitmap(capacity int) *Bitmap {
-	var arraySize = int(math.Ceil(float64(capacity) / bitsPerBlock))
+	var arraySize = sizeRequired(capacity, bitsPerBlock)
 	return &Bitmap{
 		cap:   capacity,
 		store: make([]Block, arraySize),
@@ -30,7 +28,7 @@ func NewBitmap(capacity int) *Bitmap {
 // NewBitmapFromBytes returns a new Bitmap from a slice of bytes.
 func NewBitmapFromBytes(bytes []byte) *Bitmap {
 	var numBytes = len(bytes)
-	var storeSize = int(math.Ceil(float64(numBytes) / bytesPerBlock))
+	var storeSize = sizeRequired(numBytes, bytesPerBlock)
 	var s = make([]Block, 0, storeSize)
 
 	var buf Block
@@ -47,6 +45,17 @@ func NewBitmapFromBytes(bytes []byte) *Bitmap {
 		s = append(s, buf)
 	}
 	return &Bitmap{cap: numBytes, store: s}
+}
+
+// sizeRequired returns the number of groups required to fit n items into
+// groups of at most size g. This is equivalent to ceil(n / g) but avoids using
+// package math, which depends on package unsafe.
+func sizeRequired(n, g int) int {
+	var s = n / g
+	if 0 == (n % g) {
+		return s
+	}
+	return s + 1
 }
 
 // Get returns a Block of bits representing the requested range of bits. The

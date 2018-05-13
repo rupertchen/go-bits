@@ -2,6 +2,21 @@ package bits
 
 import "testing"
 
+func TestSizeRequired(t *testing.T) {
+	var tests = []struct{s, n, g int}{
+		{0, 0, 2},
+		{1, 1, 2},
+		{1, 2, 2},
+		{2, 3, 2},
+	}
+	for _, test := range tests {
+		var actual = sizeRequired(test.n, test.g)
+		if test.s != actual {
+			t.Errorf("Expected %d, got %d", test.s, actual)
+		}
+	}
+}
+
 func TestNewBitmap(t *testing.T) {
 	var tests = []struct{ capacity, storeSize int }{
 		{0, 0},
