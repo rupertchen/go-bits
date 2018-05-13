@@ -3,20 +3,53 @@ package bits
 import "testing"
 
 func TestScanner_ReadBits(t *testing.T) {
-	var bmp = NewBitmap(128)
-	bmp.store[0] = 0xaaaaaaaaaaaaaaaa
-	bmp.store[1] = 0x5555555555555555
-	var s = NewScanner(bmp)
+	var s = NewScanner(NewBitmapFromBlocks([]Block{0xaaaaaaaaaaaaaaaa, 0x5555555555555555}))
 
-	boolEquals(t, true, s.ReadBool())
-	boolEquals(t, false, s.ReadBool())
-	boolEquals(t, true, s.ReadBool())
-	boolEquals(t, false, s.ReadBool())
-	byteEquals(t, 0xaa, s.ReadByte())
-	boolEquals(t, true, s.ReadBool())
-	byteEquals(t, 0x55, s.ReadByte())
-	blockEquals(t, 0x0000002aaaaaaaaa, s.ReadBits(39))
-	byteEquals(t, 0xa5, s.ReadByte())
+	var tests = []struct {
+		expected Block
+		length   uint
+	}{
+		// Read one bit at a time to verify position changes.
+		{0x1, 1},
+		{0x0, 1},
+		{0x1, 1},
+		{0x0, 1},
+
+		// Read multiple bits at arbitrary alignments.
+		{0xaa, 8},
+		{0x1, 1},
+		{0x55, 8},
+
+		// Read multiple bits of non-word and non-byte aligned length.
+		{0x2aaaaaaaaa, 39},
+
+		// Read spanning internal blocks.
+		{0xa5, 8},
+	}
+	for _, test := range tests {
+		blockEquals(t, test.expected, s.ReadBits(test.length))
+	}
+}
+
+func TestScanner_ReadBool(t *testing.T) {
+	var s = NewScanner(NewBitmap([]byte{0xa5}))
+
+	var expecteds = []bool{
+		true, false, true, false,
+		false, true, false, true,
+	}
+	for _, expected := range expecteds {
+		boolEquals(t, expected, s.ReadBool())
+	}
+}
+
+func TestScanner_ReadByte(t *testing.T) {
+	var s = NewScanner(NewBitmapFromBlocks([]Block{0xa5fe735d00000000}))
+
+	var expecteds = []byte{0xa5, 0xfe, 0x73, 0x5d}
+	for _, expected := range expecteds {
+		byteEquals(t, expected, s.ReadByte())
+	}
 }
 
 func boolEquals(t *testing.T, expected, actual bool) {
