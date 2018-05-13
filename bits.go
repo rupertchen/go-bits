@@ -6,7 +6,7 @@ import "math"
 // Bitmap represents a fixed-length, sequence of bits.
 type Bitmap struct {
 	cap   int
-	store []int64
+	store []uint64
 }
 
 const bitsPerBlock = 64
@@ -15,7 +15,7 @@ func NewBitmap(capacity int) *Bitmap {
 	var arraySize = int(math.Ceil(float64(capacity) / bitsPerBlock))
 	return &Bitmap{
 		cap:   capacity,
-		store: make([]int64, arraySize),
+		store: make([]uint64, arraySize),
 	}
 }
 
@@ -26,8 +26,9 @@ func (b *Bitmap) Get(index, length uint) Block {
 	}
 
 	// TODO: Assume <= 64 bits
-	var mask = int64(1) << (length - 1)
-	return Block(b.store[0] & mask)
+	var buf = b.store[0] >> index
+	var mask uint64 = 0xFFFFFFFFFFFFFFFF >> (bitsPerBlock - length)
+	return Block(buf & mask)
 }
 
 func (b *Bitmap) Capacity() int {
@@ -36,4 +37,4 @@ func (b *Bitmap) Capacity() int {
 
 // Block contains a sequence of 0–64 bits. If fewer than 64 bits are needed,
 // padding is applied. It is up to the caller to know how many bits are used.
-type Block int64
+type Block uint64
