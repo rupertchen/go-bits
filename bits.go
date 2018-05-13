@@ -23,8 +23,11 @@ func NewBitmap(capacity int) *Bitmap {
 	}
 }
 
-// Get returns a Block of bits.
+// Get returns a Block of bits representing the requested range of bits. The
+// bits are right-aligned.
 func (b *Bitmap) Get(index, length uint) Block {
+	// TODO: Validate index and length
+
 	if length == 0 {
 		return 0
 	}
@@ -50,5 +53,7 @@ func (b *Bitmap) Get(index, length uint) Block {
 }
 
 func (b *Bitmap) Capacity() int {
+	// TODO: Rename to "Length"? "Capacity" implies this structure might be
+	// writable.
 	return b.cap
 }
