@@ -23,8 +23,22 @@ func TestNewBitmap(t *testing.T) {
 	}
 }
 
-func TestBitmap_Get(t *testing.T) {
+func TestNewBitmapFromBytes(t *testing.T) {
+	// Load < 64 bits
+	var bmp1 = NewBitmapFromBytes([]byte{0xec, 0xbc, 0x65, 0xde, 0x67})
+	blockEquals(t, 0xecbc65de67, bmp1.Get(0, 40))
 
+	// Load 64 bits
+	var bmp2 = NewBitmapFromBytes([]byte{0x62, 0x91, 0x07, 0xa1, 0x80, 0xbf, 0x7c, 0xe9})
+	blockEquals(t, 0x629107a180bf7ce9, bmp2.Get(0, 64))
+
+	// Load > 64 bits
+	var bmp3 = NewBitmapFromBytes([]byte{0x01, 0xba, 0x1c, 0xeb, 0xcd, 0xce, 0x33, 0x63, 0xd9, 0xb7, 0x8d, 0x5c})
+	blockEquals(t, 0x01ba1cebcdce3363, bmp3.Get(0, 64))
+	blockEquals(t, 0x0000000000d9b78d, bmp3.Get(64, 24))
+}
+
+func TestBitmap_Get(t *testing.T) {
 	var b = NewBitmap(64)
 	blockEquals(t, 0, b.Get(0, 0))
 	blockEquals(t, 0, b.Get(0, 1))

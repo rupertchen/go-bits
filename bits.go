@@ -13,14 +13,40 @@ type Bitmap struct {
 	store []Block
 }
 
-const bitsPerBlock = 64
+const bitsPerBlock = bitsPerByte*bytesPerBlock
+const bytesPerBlock = 8
+const bitsPerByte = 8
 
+// NewBitmap returns a new Bitmap of the specified size with all bits set to
+// zero.
 func NewBitmap(capacity int) *Bitmap {
 	var arraySize = int(math.Ceil(float64(capacity) / bitsPerBlock))
 	return &Bitmap{
 		cap:   capacity,
 		store: make([]Block, arraySize),
 	}
+}
+
+// NewBitmapFromBytes returns a new Bitmap from a slice of bytes.
+func NewBitmapFromBytes(bytes []byte) *Bitmap {
+	var numBytes = len(bytes)
+	var storeSize = int(math.Ceil(float64(numBytes) / bytesPerBlock))
+	var s = make([]Block, 0, storeSize)
+
+	var buf Block
+	var lastM = bytesPerBlock - 1
+	for i, b := range bytes {
+		var m = i % bytesPerBlock
+		buf |= Block(b) << uint(bitsPerBlock-(m+1)*bitsPerByte)
+		if lastM == m {
+			s = append(s, buf)
+			buf = 0
+		}
+	}
+	if buf != 0 {
+		s = append(s, buf)
+	}
+	return &Bitmap{cap: numBytes, store: s}
 }
 
 // Get returns a Block of bits representing the requested range of bits. The

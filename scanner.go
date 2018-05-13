@@ -6,7 +6,6 @@ type Scanner struct {
 }
 
 const bitsPerBool = 1
-const bitsPerByte = 8
 
 func NewScanner(b *Bitmap) *Scanner {
 	return &Scanner{position: 0, bitmap: b}
