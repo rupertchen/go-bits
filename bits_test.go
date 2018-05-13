@@ -56,4 +56,7 @@ func TestBitmap_Get(t *testing.T) {
 	blockEquals(0x55, b2.Get(64, 8))
 	blockEquals(0x55ff, b2.Get(88, 16))
 	blockEquals(0x3f, b2.Get(122, 6))
+
+	// Access spanning internal blocks
+	blockEquals(0xa5, b2.Get(60, 8))
 }

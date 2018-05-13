@@ -29,14 +29,23 @@ func (b *Bitmap) Get(index, length uint) Block {
 		return 0
 	}
 
-	// TODO: assume request does not span internal blocks
+	// This is the index of the internal block where the range begins.
 	var storeIndex = index / bitsPerBlock
-	var buf = b.store[storeIndex] >> (bitsPerBlock - (index % bitsPerBlock) - length)
+
+	// This is the index of the last bit relative to the internal block where
+	// the range begins.
+	var endBitIndex = index%bitsPerBlock + length - 1
+
+	// Bit shift and merge the internal blocks containing the range.
+	var buf Block
+	if endBitIndex < bitsPerBlock {
+		buf = b.store[storeIndex] >> (bitsPerBlock - endBitIndex - 1)
+	} else {
+		var overflow = endBitIndex - bitsPerBlock + 1
+		buf = (b.store[storeIndex] << overflow) | (b.store[storeIndex+1] >> (bitsPerBlock - overflow))
+	}
+
 	var mask Block = 0xFFFFFFFFFFFFFFFF >> (bitsPerBlock - length)
-	//fmt.Printf("Index, Length: %d, %d\n", index, length)
-	//fmt.Printf("  s:\t0x%016X\n", b.store[0])
-	//fmt.Printf("  buf:\t0x%016X\n", buf)
-	//fmt.Printf("  mask:\t0x%016X\n", mask)
 	return Block(buf & mask)
 }
 
