@@ -18,7 +18,7 @@ func TestSizeRequired(t *testing.T) {
 }
 
 func TestNewBitmap(t *testing.T) {
-	var tests = []struct{ capacity, storeSize int }{
+	var tests = []struct{ size, storeSize int }{
 		{0, 0},
 		{1, 1},
 		{64, 1},
@@ -28,12 +28,12 @@ func TestNewBitmap(t *testing.T) {
 	}
 
 	for _, test := range (tests) {
-		var b = NewBitmap(test.capacity)
-		if b.Capacity() != test.capacity {
-			t.Errorf("Expected %d capacity, got %d", test.capacity, b.Capacity())
+		var b = NewBitmap(test.size)
+		if b.Size() != test.size {
+			t.Errorf("Expected %d size, got %d", test.size, b.Size())
 		}
 		if len(b.store) != test.storeSize {
-			t.Errorf("Expected %d store size when capacit is %d, got %d", test.storeSize, test.capacity, len(b.store))
+			t.Errorf("Expected %d store size when bitmap size is %d, got %d", test.storeSize, test.size, len(b.store))
 		}
 	}
 }

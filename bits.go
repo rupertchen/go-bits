@@ -7,7 +7,7 @@ type Block uint64
 
 // Bitmap represents a fixed-length, sequence of bits.
 type Bitmap struct {
-	cap   int
+	size  int
 	store []Block
 }
 
@@ -17,10 +17,10 @@ const bitsPerByte = 8
 
 // NewBitmap returns a new Bitmap of the specified size with all bits set to
 // zero.
-func NewBitmap(capacity int) *Bitmap {
-	var arraySize = sizeRequired(capacity, bitsPerBlock)
+func NewBitmap(s int) *Bitmap {
+	var arraySize = sizeRequired(s, bitsPerBlock)
 	return &Bitmap{
-		cap:   capacity,
+		size:  s,
 		store: make([]Block, arraySize),
 	}
 }
@@ -44,7 +44,7 @@ func NewBitmapFromBytes(bytes []byte) *Bitmap {
 	if buf != 0 {
 		s = append(s, buf)
 	}
-	return &Bitmap{cap: numBytes, store: s}
+	return &Bitmap{size: numBytes, store: s}
 }
 
 // sizeRequired returns the number of groups required to fit n items into
@@ -87,8 +87,6 @@ func (b *Bitmap) Get(index, length uint) Block {
 	return Block(buf & mask)
 }
 
-func (b *Bitmap) Capacity() int {
-	// TODO: Rename to "Length"? "Capacity" implies this structure might be
-	// writable.
-	return b.cap
+func (b *Bitmap) Size() int {
+	return b.size
 }
