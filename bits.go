@@ -18,7 +18,8 @@ const bitsPerByte = 8
 const bytesPerBlock = 8
 const bitsPerBlock = bitsPerByte * bytesPerBlock
 
-// NewBitmap returns a new Bitmap from a slice of bytes.
+// NewBitmap returns a new Bitmap from a slice of bytes. Passing the output of
+// a decoder is the typical way of creating a Bitmap.
 func NewBitmap(bytes []byte) *Bitmap {
 	var numBytes = len(bytes)
 	var storeSize = sizeRequired(numBytes, bytesPerBlock)
