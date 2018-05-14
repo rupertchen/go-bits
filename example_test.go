@@ -9,7 +9,7 @@ import (
 	"github.com/rupertchen/go-bits"
 )
 
-func ExampleNewBitmap() {
+func ExampleNewBitmap_byteSlice() {
 	// Load bytes from a []byte.
 	var bmp = bits.NewBitmap([]byte("Hello, World!"))
 
@@ -25,7 +25,7 @@ func ExampleNewBitmap() {
 	// Output: Hello!
 }
 
-func ExampleNewBitmap_fromBase64() {
+func ExampleNewBitmap_base64() {
 	// Load bytes from a base64 encoded string.
 	var b64 = "TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQ="
 	var decoded, err = base64.StdEncoding.DecodeString(b64)
@@ -42,7 +42,7 @@ func ExampleNewBitmap_fromBase64() {
 	// Output: Lorem ipsum
 }
 
-func ExampleNewBitmap_fromHexString() {
+func ExampleNewBitmap_hexString() {
 	// Load bytes from a hex encoded string.
 	var s = "a40c9a21e5a1"
 	var decoded, err = hex.DecodeString(s)
