@@ -40,16 +40,23 @@ func (r *PayloadReader) ReadTime() time.Time {
 }
 
 // ParsePayload creates a Payload from h, a hex-encoded string.
-func ParsePayload(h string) *Payload {
-	var b, err = hex.DecodeString(h)
+func ParsePayload(h string) (p *Payload, err error) {
+	defer func() {
+		if r := recover(); r!= nil {
+			err = fmt.Errorf("%v", r)
+		}
+	}()
+
+	var b []byte
+	b, err = hex.DecodeString(h)
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	var r = NewPayloadReader(b)
 
 	// This block of code directly describes the format of the payload.
-	var p = &Payload{}
+	p = &Payload{}
 	p.Version = int(r.ReadBits(4))
 	p.Category = Category(r.ReadBits(8))
 	p.IsX = r.ReadBool()
@@ -58,12 +65,12 @@ func ParsePayload(h string) *Payload {
 	p.Created = r.ReadTime()
 	p.Modified = r.ReadTime()
 
-	return p
+	return p, nil
 }
 
 func Example_parsePayload() {
 	// In this example, the payload is presented as a hex-encoded string.
-	var p = ParsePayload("b03a877346aa877346aa")
+	var p, _ = ParsePayload("b03a877346aa877346aa")
 
 	// Pretty print in JSON for readability.
 	var pretty, _ = json.MarshalIndent(p, "", "  ")
