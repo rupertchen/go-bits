@@ -103,6 +103,11 @@ func (b *Bitmap) Get(index, length uint) Block {
 	return Block(buf & mask)
 }
 
+func (b *Bitmap) GetOk(index, length uint) Block {
+	// TODO
+	return 0
+}
+
 // Size returns the number of bits in the Bitmap.
 func (b *Bitmap) Size() int {
 	return b.size
