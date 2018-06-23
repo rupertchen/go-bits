@@ -50,13 +50,13 @@ func (r *PayloadReader) ReadTime() (time.Time, error) {
 
 // ParsePayload creates a Payload from h, a hex-encoded string.
 func ParsePayload(h string) (p *Payload, err error) {
-	var b []byte
-	b, err = hex.DecodeString(h)
+	var d []byte
+	d, err = hex.DecodeString(h)
 	if err != nil {
 		return
 	}
 
-	var r = NewPayloadReader(b)
+	var r = NewPayloadReader(d)
 
 	// This block of code directly describes the format of the payload.
 	p = &Payload{}
@@ -68,12 +68,13 @@ func ParsePayload(h string) (p *Payload, err error) {
 	// more concise implementation.
 
 	// Handling errors immediately.
-	if b, err := r.ReadBits(4); err != nil {
+	var b bits.Block
+	if b, err = r.ReadBits(4); err != nil {
 		return
 	} else {
 		p.Version = int(b)
 	}
-	if b, err := r.ReadBits(8); err != nil {
+	if b, err = r.ReadBits(8); err != nil {
 		return
 	} else {
 		p.Category = Category(b)

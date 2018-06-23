@@ -63,10 +63,11 @@ func sizeRequired(n, g int) int {
 	return s + 1
 }
 
-// Get returns a Block of bits representing the requested range of bits. The
-// returned bits are right-aligned.
-func (b *Bitmap) Get(index, length uint) Block {
-	var block, err = b.GetOk(index, length)
+// MustGet returns a Block of bits representing the requested range of bits.
+// The returned bits are right-aligned. It panics if it is unable to return the
+// requested bits.
+func (b *Bitmap) MustGet(index, length uint) Block {
+	var block, err = b.Get(index, length)
 
 	if err != nil {
 		panic(err.Error())
@@ -75,8 +76,9 @@ func (b *Bitmap) Get(index, length uint) Block {
 	return block
 }
 
-// TODO: Rename to Get and MustGet, this does not follow the ok-bool idiom.
-func (b *Bitmap) GetOk(index, length uint) (Block, error) {
+// Get returns a Block of bits representing the requested range of bits. The
+// returned bits are right-aligned.
+func (b *Bitmap) Get(index, length uint) (Block, error) {
 	if index >= uint(b.size) {
 		return 0, errors.New("bits: index out of range")
 	}

@@ -36,7 +36,7 @@ func (r *Reader) ReadBits(n uint) (Block, error) {
 		return 0, r.Err
 	}
 
-	if b, err := r.src.GetOk(r.position, n); err != nil {
+	if b, err := r.src.Get(r.position, n); err != nil {
 		r.Err = errors.WithMessage(err, fmt.Sprintf("read bits (index=%d, length=%d)", r.position, n))
 		return 0, r.Err
 	} else {
