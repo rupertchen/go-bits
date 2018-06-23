@@ -1,6 +1,8 @@
 // Package bits is a set of utilities for working with sequences of bits.
 package bits
 
+import "errors"
+
 // Block contains a sequence of 0–64 bits. If fewer than 64 bits are needed,
 // the sequence is right-aligned and padded with zeros on the left. It is up
 // to the caller to interpret how many bits are used.
@@ -103,9 +105,44 @@ func (b *Bitmap) Get(index, length uint) Block {
 	return Block(buf & mask)
 }
 
-func (b *Bitmap) GetOk(index, length uint) Block {
-	// TODO
-	return 0
+func (b *Bitmap) GetOk(index, length uint) (Block, error) {
+	if index >= uint(b.size) {
+		return 0, errors.New("index out of range")
+	}
+
+	// I can't think of a reasonable use case for explicitly reading zero bits,
+	// but returning an empty Block should be the result. Perhaps there is
+	// behavior will simplify a caller's logic in some edge case.
+	if length == 0 {
+		return 0, nil
+	}
+
+	if length > bitsPerBlock {
+		return 0, errors.New("length out of range, [0-64]")
+	}
+
+	if index+length-1 >= uint(b.size) {
+		return 0, errors.New("length extends beyond range")
+	}
+
+	// This is the index of the internal block where the range begins.
+	var storeIndex = index / bitsPerBlock
+
+	// This is the index of the last bit relative to the internal block where
+	// the range begins.
+	var endBitIndex = index%bitsPerBlock + length - 1
+
+	// Bit shift and merge the internal blocks containing the range.
+	var buf Block
+	if endBitIndex < bitsPerBlock {
+		buf = b.store[storeIndex] >> (bitsPerBlock - endBitIndex - 1)
+	} else {
+		var overflow = endBitIndex - bitsPerBlock + 1
+		buf = (b.store[storeIndex] << overflow) | (b.store[storeIndex+1] >> (bitsPerBlock - overflow))
+	}
+
+	var mask Block = 0xFFFFFFFFFFFFFFFF >> (bitsPerBlock - length)
+	return Block(buf & mask), nil
 }
 
 // Size returns the number of bits in the Bitmap.

@@ -72,6 +72,32 @@ func TestBitmap_GetPanicsOnOutOfRange(t *testing.T) {
 	assertPanic(t, func() { bmp.Get(120, 64) }, "length extends beyond range")
 }
 
+func TestBitmap_GetOkPanicsOnOutOfRange(t *testing.T) {
+	var bmp = NewBitmapFromBlocks([]Block{0, 0})
+
+	var testCases = []struct {
+		index, length uint
+		expected      string
+	}{
+		{128, 0, "index out of range"},
+		{128, 1, "index out of range"},
+		{0, 65, "length out of range, [0-64]"},
+		{120, 64, "length extends beyond range"},
+	}
+
+	for _, c := range testCases {
+		var _, err = bmp.GetOk(c.index, c.length)
+		if err == nil {
+			t.Errorf("Expected error")
+			t.FailNow()
+		}
+		if err.Error() != c.expected {
+			t.Errorf(`Expect "%s", got "%s"`, c.expected, err.Error())
+			t.FailNow()
+		}
+	}
+}
+
 func blockEquals(t *testing.T, expected, actual Block) {
 	if expected != actual {
 		t.Errorf("Expected 0x%016x, got 0x%016x", expected, actual)
@@ -84,8 +110,8 @@ func assertPanic(t *testing.T, f func(), errMsg string) {
 		if r := recover(); r == nil {
 			t.Errorf("Expected panic")
 			t.FailNow()
-		} else if m := r.(error).Error(); m != errMsg {
-			t.Errorf(`Expected "%s", got "%s"`, errMsg, m)
+		} else if r != errMsg {
+			t.Errorf(`Expected "%s", got "%s"`, errMsg, r)
 			t.FailNow()
 		}
 	}()
