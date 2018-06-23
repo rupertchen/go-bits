@@ -60,19 +60,35 @@ func ParsePayload(h string) (p *Payload, err error) {
 
 	// This block of code directly describes the format of the payload.
 	p = &Payload{}
-	if b, err := r.ReadBits(4); err == nil {
+
+	// The following are examples of two styles of using a Reader to parse a
+	// binary payload. In the first, errors are checked after each read. This
+	// allows the implementation to immediately address a problem. In the
+	// second, checking for errors is deferred until the end, allowing for a
+	// more concise implementation.
+
+	// Handling errors immediately.
+	if b, err := r.ReadBits(4); err != nil {
+		return
+	} else {
 		p.Version = int(b)
 	}
-	if b, err := r.ReadBits(8); err == nil {
+	if b, err := r.ReadBits(8); err != nil {
+		return
+	} else {
 		p.Category = Category(b)
 	}
-	p.IsX, err = r.ReadBool()
-	p.IsY, err = r.ReadBool()
-	p.IsZ, err = r.ReadBool()
-	p.Created, err = r.ReadTime()
-	p.Modified, err = r.ReadTime()
+	if p.IsX, err = r.ReadBool(); err != nil {
+		return
+	}
 
-	return p, err
+	// Deferring error checks.
+	p.IsY, _ = r.ReadBool()
+	p.IsZ, _ = r.ReadBool()
+	p.Created, _ = r.ReadTime()
+	p.Modified, _ = r.ReadTime()
+
+	return p, r.Err
 }
 
 func Example_parsePayload() {

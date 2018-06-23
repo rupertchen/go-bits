@@ -11,6 +11,11 @@ import (
 // and advance the Reader's position. It is the responsibility of the caller to
 // not read beyond the available range.
 //
+// Once any Read* call returns an error, all subsequent calls on any Read*
+// function will error, returning the same error as the first. This gives
+// callers the option to "batch" read logic and periodically check for errors
+// rather than being forced to check it at every read.
+//
 // This is *not* an implementation of io.Reader.
 type Reader struct {
 	position uint
