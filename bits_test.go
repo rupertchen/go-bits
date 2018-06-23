@@ -66,10 +66,10 @@ func TestBitmap_Get(t *testing.T) {
 
 func TestBitmap_GetPanicsOnOutOfRange(t *testing.T) {
 	var bmp = NewBitmapFromBlocks([]Block{0, 0})
-	assertPanic(t, func() { bmp.Get(128, 0) }, "index out of range")
-	assertPanic(t, func() { bmp.Get(128, 1) }, "index out of range")
-	assertPanic(t, func() { bmp.Get(0, 65) }, "length out of range, [0-64]")
-	assertPanic(t, func() { bmp.Get(120, 64) }, "length extends beyond range")
+	assertPanic(t, func() { bmp.Get(128, 0) }, "bits: index out of range")
+	assertPanic(t, func() { bmp.Get(128, 1) }, "bits: index out of range")
+	assertPanic(t, func() { bmp.Get(0, 65) }, "bits: length out of range, [0-64]")
+	assertPanic(t, func() { bmp.Get(120, 64) }, "bits: length extends beyond range")
 }
 
 func TestBitmap_GetOkPanicsOnOutOfRange(t *testing.T) {
@@ -79,10 +79,10 @@ func TestBitmap_GetOkPanicsOnOutOfRange(t *testing.T) {
 		index, length uint
 		expected      string
 	}{
-		{128, 0, "index out of range"},
-		{128, 1, "index out of range"},
-		{0, 65, "length out of range, [0-64]"},
-		{120, 64, "length extends beyond range"},
+		{128, 0, "bits: index out of range"},
+		{128, 1, "bits: index out of range"},
+		{0, 65, "bits: length out of range, [0-64]"},
+		{120, 64, "bits: length extends beyond range"},
 	}
 
 	for _, c := range testCases {
