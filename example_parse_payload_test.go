@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/rupertchen/go-bits"
 	"github.com/pkg/errors"
+	"github.com/rupertchen/go-bits"
 )
 
 type Category int8
@@ -36,12 +36,12 @@ func NewPayloadReader(src []byte) *PayloadReader {
 // ReadTime interprets the next 32 bits as the Unix epoch and returns a time.
 // Time in UTC.
 func (r *PayloadReader) ReadTime() (time.Time, error) {
-	if (r.Err != nil) {
+	if r.Err != nil {
 		return time.Time{}, r.Err
 	}
 
 	if b, err := r.ReadBits(32); err != nil {
-		r.Err = errors.Wrap(err, "read time")
+		r.Err = errors.WithMessage(err, "read time")
 		return time.Time{}, r.Err
 	} else {
 		return time.Unix(int64(b), 0).UTC(), nil
@@ -77,11 +77,12 @@ func ParsePayload(h string) (p *Payload, err error) {
 
 func Example_parsePayload() {
 	// In this example, the payload is presented as a hex-encoded string.
-	var p, _ = ParsePayload("b03a877346aa877346aa")
+	var p, err = ParsePayload("b03a877346aa877346aa")
 
 	// Pretty print in JSON for readability.
 	var pretty, _ = json.MarshalIndent(p, "", "  ")
 	fmt.Println(string(pretty))
+	fmt.Println(err)
 
 	// Output:
 	// {
@@ -93,4 +94,27 @@ func Example_parsePayload() {
 	//   "Created": "2006-01-02T22:04:05Z",
 	//   "Modified": "2006-01-02T22:04:05Z"
 	// }
+	// <nil>
+}
+
+func Example_parsePayloadError() {
+	// The payload has been truncated and does not contain enough bits.
+	var p, err = ParsePayload("b03a8773")
+
+	// Pretty print in JSON for readability.
+	var pretty, _ = json.MarshalIndent(p, "", "  ")
+	fmt.Println(string(pretty))
+	fmt.Println(err)
+
+	// Output:
+	// {
+	//   "Version": 11,
+	//   "Category": 3,
+	//   "IsX": true,
+	//   "IsY": false,
+	//   "IsZ": true,
+	//   "Created": "0001-01-01T00:00:00Z",
+	//   "Modified": "0001-01-01T00:00:00Z"
+	// }
+	// read time: read bits (index=15, length=32): bits: length extends beyond range
 }

@@ -1,6 +1,10 @@
 package bits
 
-import "github.com/pkg/errors"
+import (
+	"fmt"
+
+	"github.com/pkg/errors"
+)
 
 // Reader provides a convenient way to read bits, up to 64 at a time.
 // Successive calls to the Read* functions will read the next sequence of bits
@@ -28,7 +32,7 @@ func (r *Reader) ReadBits(n uint) (Block, error) {
 	}
 
 	if b, err := r.src.GetOk(r.position, n); err != nil {
-		r.Err = errors.Wrapf(err, "read bits (%d)", n)
+		r.Err = errors.WithMessage(err, fmt.Sprintf("read bits (index=%d, length=%d)", r.position, n))
 		return 0, r.Err
 	} else {
 		//TODO: What to do about the position on error?
@@ -49,7 +53,7 @@ func (r *Reader) ReadBool() (bool, error) {
 	}
 
 	if b, err := r.ReadBits(bitsPerBool); err != nil {
-		r.Err = errors.Wrap(err, "read bool")
+		r.Err = errors.WithMessage(err, "read bool")
 		return false, r.Err
 	} else {
 		return 1 == b, nil
@@ -63,7 +67,7 @@ func (r *Reader) ReadByte() (byte, error) {
 	}
 
 	if b, err := r.ReadBits(bitsPerByte); err != nil {
-		r.Err = errors.Wrap(err, "read byte")
+		r.Err = errors.WithMessage(err, "read byte")
 		return 0, r.Err
 	} else {
 		return byte(b), nil
