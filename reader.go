@@ -14,7 +14,12 @@ import (
 // Once any Read* call returns an error, all subsequent calls on any Read*
 // function will error, returning the same error as the first. This gives
 // callers the option to "batch" read logic and periodically check for errors
-// rather than being forced to check it at every read.
+// rather than checking it after every read.
+//
+// The internal position is not advanced when there is an error. Therefore, it
+// is possible for NumUnread and HasUnread to return >0 or true, respectively,
+// but be unable to read any more bits. This is an intentional design decision
+// to prevent mis-aligned reads following a read failure.
 //
 // This is *not* an implementation of io.Reader.
 type Reader struct {
@@ -40,12 +45,6 @@ func (r *Reader) ReadBits(n uint) (Block, error) {
 		r.Err = errors.WithMessage(err, fmt.Sprintf("read bits (index=%d, length=%d)", r.position, n))
 		return 0, r.Err
 	} else {
-		//TODO: What to do about the position on error?
-		// It's inaccurate to say we're done, but most callers are asking in
-		// order to decide whether to keep reading and by convention,
-		// we know subsequent calls will all fail. Perhaps it's better to
-		// document the only-one-error convention and expect callers to check
-		// errors.
 		r.position += n
 		return b, nil
 	}
