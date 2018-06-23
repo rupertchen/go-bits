@@ -1,7 +1,7 @@
 // Package bits is a set of utilities for working with sequences of bits.
 package bits
 
-import "errors"
+import "github.com/pkg/errors"
 
 // Block contains a sequence of 0–64 bits. If fewer than 64 bits are needed,
 // the sequence is right-aligned and padded with zeros on the left. It is up
@@ -75,6 +75,7 @@ func (b *Bitmap) Get(index, length uint) Block {
 	return block
 }
 
+// TODO: Rename to Get and MustGet, this does not follow the ok-bool idiom.
 func (b *Bitmap) GetOk(index, length uint) (Block, error) {
 	if index >= uint(b.size) {
 		return 0, errors.New("bits: index out of range")

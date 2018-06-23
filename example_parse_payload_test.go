@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/rupertchen/go-bits"
+	"github.com/pkg/errors"
 )
 
 type Category int8
@@ -34,19 +35,21 @@ func NewPayloadReader(src []byte) *PayloadReader {
 
 // ReadTime interprets the next 32 bits as the Unix epoch and returns a time.
 // Time in UTC.
-func (r *PayloadReader) ReadTime() time.Time {
-	var sec = int64(r.ReadBits(32))
-	return time.Unix(sec, 0).UTC()
+func (r *PayloadReader) ReadTime() (time.Time, error) {
+	if (r.Err != nil) {
+		return time.Time{}, r.Err
+	}
+
+	if b, err := r.ReadBits(32); err != nil {
+		r.Err = errors.Wrap(err, "read time")
+		return time.Time{}, r.Err
+	} else {
+		return time.Unix(int64(b), 0).UTC(), nil
+	}
 }
 
 // ParsePayload creates a Payload from h, a hex-encoded string.
 func ParsePayload(h string) (p *Payload, err error) {
-	defer func() {
-		if r := recover(); r!= nil {
-			err = fmt.Errorf("%v", r)
-		}
-	}()
-
 	var b []byte
 	b, err = hex.DecodeString(h)
 	if err != nil {
@@ -57,15 +60,19 @@ func ParsePayload(h string) (p *Payload, err error) {
 
 	// This block of code directly describes the format of the payload.
 	p = &Payload{}
-	p.Version = int(r.ReadBits(4))
-	p.Category = Category(r.ReadBits(8))
-	p.IsX = r.ReadBool()
-	p.IsY = r.ReadBool()
-	p.IsZ = r.ReadBool()
-	p.Created = r.ReadTime()
-	p.Modified = r.ReadTime()
+	if b, err := r.ReadBits(4); err == nil {
+		p.Version = int(b)
+	}
+	if b, err := r.ReadBits(8); err == nil {
+		p.Category = Category(b)
+	}
+	p.IsX, err = r.ReadBool()
+	p.IsY, err = r.ReadBool()
+	p.IsZ, err = r.ReadBool()
+	p.Created, err = r.ReadTime()
+	p.Modified, err = r.ReadTime()
 
-	return p, nil
+	return p, err
 }
 
 func Example_parsePayload() {
