@@ -1,6 +1,8 @@
 // Package bits is a set of utilities for working with sequences of bits.
 package bits
 
+import "github.com/pkg/errors"
+
 // Block contains a sequence of 0–64 bits. If fewer than 64 bits are needed,
 // the sequence is right-aligned and padded with zeros on the left. It is up
 // to the caller to interpret how many bits are used.
@@ -61,26 +63,39 @@ func sizeRequired(n, g int) int {
 	return s + 1
 }
 
+// MustGet returns a Block of bits representing the requested range of bits.
+// The returned bits are right-aligned. It panics if it is unable to return the
+// requested bits.
+func (b *Bitmap) MustGet(index, length uint) Block {
+	var block, err = b.Get(index, length)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return block
+}
+
 // Get returns a Block of bits representing the requested range of bits. The
 // returned bits are right-aligned.
-func (b *Bitmap) Get(index, length uint) Block {
+func (b *Bitmap) Get(index, length uint) (Block, error) {
 	if index >= uint(b.size) {
-		panic("index out of range")
+		return 0, errors.New("bits: index out of range")
 	}
 
 	// I can't think of a reasonable use case for explicitly reading zero bits,
 	// but returning an empty Block should be the result. Perhaps there is
 	// behavior will simplify a caller's logic in some edge case.
 	if length == 0 {
-		return 0
+		return 0, nil
 	}
 
 	if length > bitsPerBlock {
-		panic("length out of range, [0-64]")
+		return 0, errors.New("bits: length out of range, [0-64]")
 	}
 
 	if index+length-1 >= uint(b.size) {
-		panic("length extends beyond range")
+		return 0, errors.New("bits: length extends beyond range")
 	}
 
 	// This is the index of the internal block where the range begins.
@@ -100,7 +115,7 @@ func (b *Bitmap) Get(index, length uint) Block {
 	}
 
 	var mask Block = 0xFFFFFFFFFFFFFFFF >> (bitsPerBlock - length)
-	return Block(buf & mask)
+	return Block(buf & mask), nil
 }
 
 // Size returns the number of bits in the Bitmap.

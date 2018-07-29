@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/rupertchen/go-bits"
 )
 
@@ -34,47 +35,71 @@ func NewPayloadReader(src []byte) *PayloadReader {
 
 // ReadTime interprets the next 32 bits as the Unix epoch and returns a time.
 // Time in UTC.
-func (r *PayloadReader) ReadTime() time.Time {
-	var sec = int64(r.ReadBits(32))
-	return time.Unix(sec, 0).UTC()
+func (r *PayloadReader) ReadTime() (time.Time, error) {
+	if r.Err != nil {
+		return time.Time{}, r.Err
+	}
+
+	if b, err := r.ReadBits(32); err != nil {
+		r.Err = errors.WithMessage(err, "read time")
+		return time.Time{}, r.Err
+	} else {
+		return time.Unix(int64(b), 0).UTC(), nil
+	}
 }
 
 // ParsePayload creates a Payload from h, a hex-encoded string.
 func ParsePayload(h string) (p *Payload, err error) {
-	defer func() {
-		if r := recover(); r!= nil {
-			err = fmt.Errorf("%v", r)
-		}
-	}()
-
-	var b []byte
-	b, err = hex.DecodeString(h)
+	var d []byte
+	d, err = hex.DecodeString(h)
 	if err != nil {
 		return
 	}
 
-	var r = NewPayloadReader(b)
+	var r = NewPayloadReader(d)
 
 	// This block of code directly describes the format of the payload.
 	p = &Payload{}
-	p.Version = int(r.ReadBits(4))
-	p.Category = Category(r.ReadBits(8))
-	p.IsX = r.ReadBool()
-	p.IsY = r.ReadBool()
-	p.IsZ = r.ReadBool()
-	p.Created = r.ReadTime()
-	p.Modified = r.ReadTime()
 
-	return p, nil
+	// The following are examples of two styles of using a Reader to parse a
+	// binary payload. In the first, errors are checked after each read. This
+	// allows the implementation to immediately address a problem. In the
+	// second, checking for errors is deferred until the end, allowing for a
+	// more concise implementation.
+
+	// Handling errors immediately.
+	var b bits.Block
+	if b, err = r.ReadBits(4); err != nil {
+		return
+	} else {
+		p.Version = int(b)
+	}
+	if b, err = r.ReadBits(8); err != nil {
+		return
+	} else {
+		p.Category = Category(b)
+	}
+	if p.IsX, err = r.ReadBool(); err != nil {
+		return
+	}
+
+	// Deferring error checks.
+	p.IsY, _ = r.ReadBool()
+	p.IsZ, _ = r.ReadBool()
+	p.Created, _ = r.ReadTime()
+	p.Modified, _ = r.ReadTime()
+
+	return p, r.Err
 }
 
 func Example_parsePayload() {
 	// In this example, the payload is presented as a hex-encoded string.
-	var p, _ = ParsePayload("b03a877346aa877346aa")
+	var p, err = ParsePayload("b03a877346aa877346aa")
 
 	// Pretty print in JSON for readability.
 	var pretty, _ = json.MarshalIndent(p, "", "  ")
 	fmt.Println(string(pretty))
+	fmt.Println(err)
 
 	// Output:
 	// {
@@ -86,4 +111,27 @@ func Example_parsePayload() {
 	//   "Created": "2006-01-02T22:04:05Z",
 	//   "Modified": "2006-01-02T22:04:05Z"
 	// }
+	// <nil>
+}
+
+func Example_parsePayloadError() {
+	// The payload has been truncated and does not contain enough bits.
+	var p, err = ParsePayload("b03a8773")
+
+	// Pretty print in JSON for readability.
+	var pretty, _ = json.MarshalIndent(p, "", "  ")
+	fmt.Println(string(pretty))
+	fmt.Println(err)
+
+	// Output:
+	// {
+	//   "Version": 11,
+	//   "Category": 3,
+	//   "IsX": true,
+	//   "IsY": false,
+	//   "IsZ": true,
+	//   "Created": "0001-01-01T00:00:00Z",
+	//   "Modified": "0001-01-01T00:00:00Z"
+	// }
+	// read time: read bits (index=15, length=32): bits: length extends beyond range
 }

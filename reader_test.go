@@ -27,7 +27,8 @@ func TestReader_ReadBits(t *testing.T) {
 		{0xa5, 8},
 	}
 	for _, test := range tests {
-		blockEquals(t, test.expected, r.ReadBits(test.length))
+		var b, _ = r.ReadBits(test.length)
+		blockEquals(t, test.expected, b)
 	}
 }
 
@@ -39,7 +40,8 @@ func TestReader_ReadBool(t *testing.T) {
 		false, true, false, true,
 	}
 	for _, expected := range expecteds {
-		boolEquals(t, expected, r.ReadBool())
+		var b, _ = r.ReadBool()
+		boolEquals(t, expected, b)
 	}
 }
 
@@ -48,7 +50,8 @@ func TestReader_ReadByte(t *testing.T) {
 
 	var expecteds = []byte{0xa5, 0xfe, 0x73, 0x5d}
 	for _, expected := range expecteds {
-		byteEquals(t, expected, r.ReadByte())
+		var b, _ = r.ReadByte()
+		byteEquals(t, expected, b)
 	}
 }
 
